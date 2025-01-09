@@ -190,7 +190,7 @@ if __name__ == "__main__":
         query = QUERY_TS.format(param=current_user_info['objid'])
         
         logging.info(f"executing query:\n{query}")
-        for row in get_vertec_data(VERTEC_URL, token, query):
+        for row in get_vertec_data(os.environ.get("VERTEC_URL"), token, query):
             print(json.dumps(row, sort_keys=True))
         
     except Exception as e:
