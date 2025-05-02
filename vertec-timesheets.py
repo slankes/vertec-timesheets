@@ -15,15 +15,25 @@ python3 vertec-timesheets.py
 import os
 import json
 import logging
+import configparser
 from getpass import getpass
 from xml.sax.saxutils import escape as xmlescape
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from itertools import groupby
-
 import requests
 
 logging.basicConfig(level=logging.WARN)
+
+# Determine INI file path and load if exists
+config = configparser.ConfigParser()
+config_file = os.environ.get('VERTEC_INI', 'vertec.ini')
+config_exists = os.path.exists(config_file)
+if config_exists:
+    config.read(config_file)
+    logging.info(f"Loaded configuration from {config_file}")
+else:
+    logging.debug(f"INI file {config_file} not found; will prompt for values and save them")
 
 # Vertec query to retrieve information about the currently logged-in user
 QUERY_MY_USERS = """<Query>
@@ -166,17 +176,25 @@ def get_vertec_token(endpoint: str, username:str, password:str) -> str:
 
 if __name__ == "__main__":
     try:
-        url = os.environ.get("VERTEC_URL") or input(f"Vertec url (format: 'https://...'):")
-        if url in ('', None):
-            raise Exception("Provide the vertec URL as ENV variable VERTEC_URL or by interactive prompt")
+        # Load or prompt config
+        url = os.getenv('VERTEC_URL') or config.get('Vertec', 'url', fallback=None) or input("Vertec url (format: 'https://...'): ")
+        if not url:
+            raise Exception("Provide the Vertec URL via ENV, INI file, or prompt.")
 
-        username = os.environ.get("VERTEC_USERNAME") or input(f"Vertec username:")
-        if username in ('', None):
-            raise Exception("Provide the vertec username as ENV variable VERTEC_USERNAME or by interactive prompt")
+        username = os.getenv('VERTEC_USERNAME') or config.get('Vertec', 'username', fallback=None) or input("Vertec username: ")
+        if not username:
+            raise Exception("Provide the Vertec username via ENV, INI file, or prompt.")
 
-        password = os.environ.get("VERTEC_PASSWORD") or getpass(f"Vertec password for '{username}':")
-        if password in ('', None):
-            raise Exception("Provide the vertec password as ENV variable VERTEC_PASSWORD or by interactive prompt")
+        password = os.getenv('VERTEC_PASSWORD') or config.get('Vertec', 'password', fallback=None) or getpass(f"Vertec password for '{username}': ")
+        if not password:
+            raise Exception("Provide the Vertec password via ENV, INI file, or prompt.")
+
+        # Save if prompted
+        if not config_exists:
+            config['Vertec'] = {'url': url, 'username': username, 'password': password}
+            with open(config_file, 'w') as f:
+                config.write(f)
+            logging.info(f"Saved configuration to {config_file}")
 
         # authenticate against vertec and cache the token
         logging.info(f"retrieving auth token from vertec server {url} for {username}")
