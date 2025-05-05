@@ -8,16 +8,14 @@ In order to work, the script needs these three configurations, either provided a
 - `VERTEC_USERNAME`
 - `VERTEC_PASSWORD`
 
-## Usage
+If the above information is not supplied as an environment variable, you'll be interactively asked for it and then the data is stored in a local file for further calls of the script.
 
+## Usage
 ```bash
     python3 -m virtualenv venv
     source venv/bin/activate
     pip3 install --upgrade pip
     pip3 install -r REQUIREMENTS.txt
-
-    export VERTEC_URL=https://your-vertec.your-company.com
-    export VERTEC_USERNAME=yourusername 
 
     python3 vertec-timesheets.py
 ```
