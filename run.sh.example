@@ -1,0 +1,5 @@
+#!/bin/bash
+export VERTEC_URL=https://vertec.tld
+export VERTEC_USERNAME=username@domain.tld
+export VERTEC_PASSWORD=VERTEC_PASSWORD
+./vertec-timesheets.py
